@@ -4,13 +4,15 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
+from sklearn.model_selection import cross_validate, KFold
+
 from datahelper import *
 
 # Settings
-days_window = 6
+days_window = 0
 columns_considered = ['average_breath', 'average_heart_rate', 'average_hrv',
          'deep_sleep_duration', 'light_sleep_duration', 'rem_sleep_duration']
-training_target = 'efficiency_tp1' #efficiency_tp1
+training_target = 'efficiency' #efficiency_tp1
 
 # Dataset processing
 df_list = []
