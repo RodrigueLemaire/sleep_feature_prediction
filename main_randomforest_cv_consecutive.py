@@ -1,10 +1,12 @@
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import cross_validate, KFold
+from sklearn.dummy import DummyRegressor
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from datahelper import *
 
 # Settings
-days_window = 6
+days_window = 0
 columns_considered = ['average_breath', 'average_heart_rate', 'average_hrv',
          'deep_sleep_duration', 'light_sleep_duration', 'rem_sleep_duration']
 training_target = 'efficiency'
@@ -48,6 +50,16 @@ mae = -scores['test_neg_mean_absolute_error'].mean()
 mse = -scores['test_neg_mean_squared_error'].mean()
 r2 = scores['test_r2'].mean()
 
-print(f"Mean Absolute Error: {mae:.2f}")
-print(f"Mean Squared Error: {mse:.2f}")
-print(f"R-squared Score: {r2:.2f}")
+# Dummy regressor with median strategy
+dummy = DummyRegressor(strategy="median")
+dummy.fit(X, y)
+
+y_pred_dummy = dummy.predict(X)
+
+mae_dummy = mean_absolute_error(y, y_pred_dummy)
+mse_dummy = mean_squared_error(y, y_pred_dummy)
+r2_dummy = r2_score(y, y_pred_dummy)
+
+print(f"Mean Absolute Error (vs. Dummy): {mae:.2f} / {mae_dummy:.2f}")
+print(f"Mean Squared Error (vs. Dummy): {mse:.2f} / {mse_dummy:.2f}")
+print(f"R-squared Score (vs. Dummy): {r2:.2f} / {r2_dummy:.2f}")

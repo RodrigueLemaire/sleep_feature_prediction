@@ -1,13 +1,12 @@
-from tabulate import tabulate
-
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.dummy import DummyRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from datahelper import *
 
 # Settings
-days_window = 6
+days_window = 0
 columns_considered = ['average_breath', 'average_heart_rate', 'average_hrv',
          'deep_sleep_duration', 'light_sleep_duration', 'rem_sleep_duration']
 training_target = 'efficiency'
@@ -51,15 +50,32 @@ mae = mean_absolute_error(y_test, y_pred)
 mse = mean_squared_error(y_test, y_pred)
 r2 = r2_score(y_test, y_pred)
 
-# FIXME: find a way to predict the same value each time or use mean over the whole test set
 single_data = X_test.iloc[0].values.reshape(1, -1)
 predicted_value = rf_regressor.predict(single_data)
+
+# Feature importance
+importance_df = pd.DataFrame({
+    'feature': columns_considered,
+    'importance': rf_regressor.feature_importances_
+}).sort_values('importance', ascending=False)
+
+# Dummy regressor with median strategy
+dummy = DummyRegressor(strategy="median")
+dummy.fit(X_train, y_train)
+
+y_pred_dummy = dummy.predict(X_test)
+
+mae_dummy = mean_absolute_error(y_test, y_pred_dummy)
+mse_dummy = mean_squared_error(y_test, y_pred_dummy)
+r2_dummy = r2_score(y_test, y_pred_dummy)
 
 print(X_train.shape)
 
 print(f"Predicted Value: {predicted_value[0]}")
 print(f"Actual Value: {y_test.iloc[0]}")
 
-print(f"Mean Absolute Error: {mae:.2f}")
-print(f"Mean Squared Error: {mse:.2f}")
-print(f"R-squared Score: {r2:.2f}")
+print(f"Mean Absolute Error (vs. Dummy): {mae:.2f} / {mae_dummy:.2f}")
+print(f"Mean Squared Error (vs. Dummy): {mse:.2f} / {mse_dummy:.2f}")
+print(f"R-squared Score (vs. Dummy): {r2:.2f} / {r2_dummy:.2f}")
+
+print(f"Feature Importance: \n{importance_df}")
