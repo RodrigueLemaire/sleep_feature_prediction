@@ -6,13 +6,14 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from datahelper import *
 
 # Settings
-days_window = 0
+days_window = 1
 columns_considered = ['average_breath', 'average_heart_rate', 'average_hrv',
          'deep_sleep_duration', 'light_sleep_duration', 'rem_sleep_duration']
 training_target = 'efficiency'
 
 # Dataset processing
 df_list = []
+missing_entries = 0
 
 for ID in range(1, 30):
     df = read_id(ID, data_sleep_all())
@@ -22,6 +23,8 @@ for ID in range(1, 30):
     if days_window > 0:
         for col in columns_considered:
             df[col + "_average"] = df[col].shift(1).rolling(days_window).mean()
+
+            missing_entries += df[col].shift(1).rolling(days_window, min_periods=1).count().mean()
 
     df = df.dropna()
 
@@ -55,9 +58,9 @@ predicted_value = rf_regressor.predict(single_data)
 
 # Feature importance
 importance_df = pd.DataFrame({
-    'feature': columns_considered,
+    'feature': training_columns,
     'importance': rf_regressor.feature_importances_
-}).sort_values('importance', ascending=False)
+}).sort_values('feature', ascending=False)
 
 # Dummy regressor with median strategy
 dummy = DummyRegressor(strategy="median")
@@ -69,7 +72,8 @@ mae_dummy = mean_absolute_error(y_test, y_pred_dummy)
 mse_dummy = mean_squared_error(y_test, y_pred_dummy)
 r2_dummy = r2_score(y_test, y_pred_dummy)
 
-print(X_train.shape)
+print(f"Training dataset shape: {X_train.shape}")
+print(f"Missing entries: {missing_entries/29:.2f}%")
 
 print(f"Predicted Value: {predicted_value[0]}")
 print(f"Actual Value: {y_test.iloc[0]}")
