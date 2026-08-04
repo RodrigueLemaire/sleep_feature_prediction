@@ -6,7 +6,7 @@ from scipy.stats import spearmanr
 
 from datahelper import *
 
-TESTING = 1
+TESTING = 8
 if __name__ == "__main__":
     logging.debug("start_main\n")
 
@@ -290,6 +290,4 @@ if __name__ == "__main__":
         axs[0].grid()
         axs[1].grid()
         plt.show()
-
-
 

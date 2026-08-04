@@ -66,7 +66,8 @@ def data_sleep_all() -> pd.DataFrame:
         "latency",
         "restless_periods",
         "bedtime_start_delta",
-        "bedtime_end_delta"
+        "bedtime_end_delta",
+        "readiness_score"
     ]
 
     columns_to_remove = [e for e in columns if e not in columns_to_keep]
