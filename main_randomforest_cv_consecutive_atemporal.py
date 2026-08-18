@@ -7,14 +7,12 @@ import numpy as np
 from datahelper import *
 
 # Settings
-days_window = 6     # WARNING: Total window is equal to 1 + days_window
 columns_considered = ['average_breath', 'average_heart_rate', 'average_hrv',
          'deep_sleep_duration', 'light_sleep_duration', 'rem_sleep_duration']
 training_target = 'n_correct'
 
 # Dataset processing
 df_list = []
-missing_entries = []
 
 for ID in range(1, 30):
     # Extract sleep data and self-report data for a single user
@@ -45,36 +43,20 @@ for ID in range(1, 30):
     # Ensure no days are missing, data for missing days will be NaN
     df = df.asfreq('D')
 
-    if days_window > 0:
-        for col in columns_considered:
-            # Calculate rolling window averages in a new column
-            df[col + "_average"] = (
-                df[col].shift(1).rolling(str(days_window) + 'D', min_periods=1).mean())
+    for col in columns_considered:
+        df[col + "_average"] = df[col].shift(1).shift(1).expanding().mean()
 
-            # Count NaN amount in rolling window
-            missing_entries.append(
-                (
-                    days_window -
-                    df[col].shift(1).rolling(str(days_window) + 'D', min_periods=0).count()
-                ).mean()
-            )
-
-    # Drop all rows still containing NaN values
     df = df.dropna()
 
     df_list.append(df)
-
-# Compute final missingness
-missing_entries = np.mean(missing_entries)
 
 # Combine all participants' dataframe into one for training
 data = pd.concat(df_list, ignore_index=True)
 
 # Model training
 training_columns = columns_considered.copy()
-if days_window > 0:
-    for col in columns_considered:
-        training_columns.append(col + "_average")
+for col in columns_considered:
+    training_columns.append(col + "_average")
 
 X = data[training_columns] # Data over the previous days
 y = data[training_target] # Sleep efficiency for the next day
@@ -114,8 +96,6 @@ y_pred_dummy = dummy.predict(X)
 mae_dummy = mean_absolute_error(y, y_pred_dummy)
 mse_dummy = mean_squared_error(y, y_pred_dummy)
 r2_dummy = r2_score(y, y_pred_dummy)
-
-print(f"Missing entries: {missing_entries:.2f}%")
 
 print(f"Mean Absolute Error (vs. Dummy): {mae:.2f} / {mae_dummy:.2f}")
 print(f"Mean Squared Error (vs. Dummy): {mse:.2f} / {mse_dummy:.2f}")
