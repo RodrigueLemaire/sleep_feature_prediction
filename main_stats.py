@@ -6,7 +6,7 @@ from scipy.stats import spearmanr
 
 from datahelper import *
 
-TESTING = 8
+TESTING = 1
 if __name__ == "__main__":
     logging.debug("start_main\n")
 

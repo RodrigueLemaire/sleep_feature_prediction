@@ -50,7 +50,6 @@ mae = mean_absolute_error(y_test, y_pred)
 mse = mean_squared_error(y_test, y_pred)
 r2 = r2_score(y_test, y_pred)
 
-# FIXME: find a way to predict the same value each time or use mean over the whole test set
 single_data = X_test.iloc[0].values.reshape(1, -1)
 predicted_value = rf_regressor.predict(single_data)
 
